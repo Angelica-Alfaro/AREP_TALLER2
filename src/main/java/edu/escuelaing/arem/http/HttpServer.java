@@ -7,18 +7,18 @@ import java.io.*;
 public class HttpServer {
 	private static final HttpServer _instance = new HttpServer();
 	
+	private HttpServer() {}
+	
 	public static HttpServer getInstance() {
 		return _instance;
 	}
 	
-	private HttpServer() {}
-	
-	public void start(String[] args) throws IOException, URISyntaxException {
+	public void start(String[] args, int port) throws IOException, URISyntaxException {
 		ServerSocket serverSocket = null;
 		try {
-			serverSocket = new ServerSocket(35000);
+			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
-			System.err.println("Could not listen on port: 35000.");
+			System.err.println("Could not listen on port: " + port);
 			System.exit(1);
 		}
 
@@ -69,7 +69,7 @@ public class HttpServer {
 	//Hacer que el servidor ya reciba js, css, imagenes y no solo html.
 	public String getRequestDisc() throws IOException{
 		//File archivo = new File("src/main/resources/public_html/index.html");
-		File archivo = new File("target/classes/public_html/index.html");//Meterlo en el root del proyecto, relativo al folder del proyecto
+		File archivo = new File("target/classes/public/index.html");//Meterlo en el root del proyecto, relativo al folder del proyecto
 		BufferedReader in = new BufferedReader(new FileReader(archivo));
 		String str;
 		String output = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n\r\n";
@@ -98,9 +98,5 @@ public class HttpServer {
 				+ "    </body>\n" 
 				+ "  </html>\n";
 		return outputLine;
-	}
-	
-	public static void main(String[] args) throws IOException, URISyntaxException {
-		HttpServer.getInstance().start(args);
 	}
 }
