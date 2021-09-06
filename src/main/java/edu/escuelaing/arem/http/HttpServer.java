@@ -1,6 +1,10 @@
 package edu.escuelaing.arem.http;
 
 import java.net.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.*;
 
 public class HttpServer {
@@ -39,67 +43,57 @@ public class HttpServer {
 	}
 
 	public void serverConnection(Socket clientSocket) throws IOException, URISyntaxException {
-		if (clientSocket != null) {
-			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+		PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+		BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-			String inputLine, outputLine;
-			StringBuilder stringBuilderRequest = new StringBuilder();
-			if (in != null && in.ready()) {
-				while ((inputLine = in.readLine()) != null) {
-					// System.out.println("Received: " + inputLine);
-					stringBuilderRequest.append(inputLine);
-					if (!in.ready()) {
-						break;
-					}
-				}
+		String inputLine, outputLine;
+		StringBuilder stringBuilderRequest = new StringBuilder();
+		while ((inputLine = in.readLine()) != null) {
+			// System.out.println("Received: " + inputLine);
+			stringBuilderRequest.append(inputLine);
+			if (!in.ready()) {
+				break;
 			}
-
-			String stringRequest = stringBuilderRequest.toString();
-			if ((stringRequest != null) && (stringRequest.length() != 0)) {
-				String uriStr;
-				String[] request = stringRequest.split(" ");
-
-				if ((request != null)) {
-					uriStr = request[1];
-					//System.out.println("uriStr:" + uriStr);
-					URI resourceURI = new URI(uriStr);
-					outputLine = getResource(resourceURI);
-					out.println(outputLine);
-				}
-			}
-			out.close();
-			in.close();
-			clientSocket.close();
-		} 
-		else {
-			throw new IOException("Client socket cannot be null");
 		}
+
+		String stringRequest = stringBuilderRequest.toString();
+		if ((stringRequest != null) && (stringRequest.length() != 0)) {
+			String[] request = stringRequest.split(" ");
+			String uriStr = request[1];
+			//System.out.println("uriStr:" + uriStr);
+			URI resourceURI = new URI(uriStr);
+			outputLine = getResource(resourceURI);
+			out.println(outputLine);
+		}
+		out.close();
+		in.close();
+		clientSocket.close();
 	}
 
 	public String getResource(URI resourceURI) throws IOException {
-		//System.out.println("Received URI: " + resourceURI);
-		// return computeDefaultResponse();
-		return getRequestDisc();
-	}
+		Charset charset = Charset.forName("UTF-8");
+		Path file = Paths.get("target/classes/public" + resourceURI.getPath());
+		String output;
+		
+		try (BufferedReader in = Files.newBufferedReader(file, charset)) {
+			String str, mimeType = null;
 
-	// Hacer que el servidor ya reciba js, css, imagenes y no solo html.
-	public String getRequestDisc() throws IOException {
-		// File archivo = new File("src/main/resources/public_html/index.html");
-		File archivo = new File("target/classes/public/index.html");// Meterlo en el root del proyecto, relativo al
-																	// folder del proyecto
-		BufferedReader in = new BufferedReader(new FileReader(archivo));
-		String str;
-		String output = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n\r\n";
-		while ((str = in.readLine()) != null) {
-			System.out.println(str);
-			output += str + "\n";
+			mimeType = contentType(resourceURI.getPath());
+			output = "HTTP/1.1 200 OK\r\n" + "Content-Type: " + mimeType + "\r\n\r\n";
+			while ((str = in.readLine()) != null) {
+				//System.out.println(str);
+				output += str + "\n";
+			}
+
+		} catch (IOException e) {
+			System.err.println("Access denied.");
+			output = defaultResponse();
 		}
-		System.out.println(output);
+		//System.out.println(output);
 		return output;
 	}
 
-	public String computeDefaultResponse() {
+	public String defaultResponse() {
 		String outputLine = "HTTP/1.1 200 OK\r\n" 
 							+ "Content-Type: text/html\r\n"
 							+ "\r\n" 
@@ -107,13 +101,27 @@ public class HttpServer {
 							+ "  <html>\n"
 							+ "    <head>\n" 
 							+ "      <meta charset=\"UTF-8\">\n"
-							+ "      <title>Title of the document</title>\n" 
+							+ "      <title>Home page</title>\n" 
 							+ "    </head>\n" 
 							+ "    <body>\n"
-							+ "      My Web Site\n"
-							+ "      <img src=\"https://razonpublica.com/wp-content/uploads/2014/10/mafalda-mujer-quino-e1597859179573.jpg\"> "
+							+ "      <img src=\"http://agro-sky.com/construccion5.jpg\"> "
 							+ "    </body>\n" 
 							+ "  </html>\n";
 		return outputLine;
+	}
+	
+	public String contentType(String path) {
+		String mimeType = null;
+		
+		if (path.contains(".html")) {
+			mimeType = "text/html";
+		}
+		else if (path.contains(".css")) {
+			mimeType = "text/css";
+		} 
+		else if (path.contains(".js")) {
+			mimeType = "text/javascript";
+		}
+		return mimeType;
 	}
 }
