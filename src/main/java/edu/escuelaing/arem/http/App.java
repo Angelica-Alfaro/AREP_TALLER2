@@ -17,7 +17,11 @@ public class App {
 	public static void main(String[] args) {
 		try {
 			HttpServer.getInstance().start(args, getPort());
-		} catch (IOException | URISyntaxException e) {
+		} 
+		catch (IOException e) {
+			e.printStackTrace();	
+		} 
+		catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
 	}
