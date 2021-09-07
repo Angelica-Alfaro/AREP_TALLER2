@@ -95,6 +95,7 @@ public class HttpServer {
 	private void getImageResource(URI resourceURI, OutputStream outputStream, String extension) throws IOException {
 		String path = "target/classes/public" + resourceURI.getPath();
 		File file = new File(path);
+		String mimeType = contentType(resourceURI.getPath());
 
 		if (file.exists()) {
 			try {
@@ -104,7 +105,7 @@ public class HttpServer {
 					DataOutputStream writeimg = new DataOutputStream(outputStream);
 
 					ImageIO.write(image, extension, arrayOutputStream);
-					writeimg.writeBytes("HTTP/1.1 200 OK \r\n" + "Content-Type: " + resourceURI.getPath() + "\r\n" + "\r\n");
+					writeimg.writeBytes("HTTP/1.1 200 OK \r\n" + "Content-Type: " + mimeType + "\r\n" + "\r\n");
 					writeimg.write(arrayOutputStream.toByteArray());
 				}
 			} catch (IOException e) {
