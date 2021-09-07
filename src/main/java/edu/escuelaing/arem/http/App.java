@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 
 /**
  * Communication for Heroku using java network management libraries
- * @author Angélica
+ * @author AngÃ©lica
  *
  */
 public class App {
