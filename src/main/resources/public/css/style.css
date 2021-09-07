@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Style+Script&display=Kimberly%20Geswein');
+.myTitle{
+    font-family: 'Style Script';
+    color: rgba(255, 0, 0, 0.685);
+    font-size: 80px;
+    text-align: center;
+}
+
+img{
+    width: 100%;
+}
+
+.myDiv{
+    width: 50%;
+    float: left;
+}
+
+.btn-outline-danger{
+    margin-top: 10%;
+    margin-left: 30%;
+    width: 50%;
+}
+
+.myText{
+    margin-left: 10%;
+    font-size: 18px;
+    text-align: center;
+
+}
