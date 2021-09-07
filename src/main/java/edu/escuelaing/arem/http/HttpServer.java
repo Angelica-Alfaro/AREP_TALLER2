@@ -5,6 +5,10 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import javax.imageio.ImageIO;
+
+import java.awt.image.BufferedImage;
 import java.io.*;
 
 public class HttpServer {
@@ -46,7 +50,7 @@ public class HttpServer {
 		PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 		BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-		String inputLine, outputLine;
+		String inputLine;
 		StringBuilder stringBuilderRequest = new StringBuilder();
 		while ((inputLine = in.readLine()) != null) {
 			// System.out.println("Received: " + inputLine);
@@ -62,15 +66,56 @@ public class HttpServer {
 			String uriStr = request[1];
 			//System.out.println("uriStr:" + uriStr);
 			URI resourceURI = new URI(uriStr);
-			outputLine = getResource(resourceURI);
-			out.println(outputLine);
+			getResource(resourceURI, out, clientSocket.getOutputStream(), uriStr);
 		}
 		out.close();
 		in.close();
 		clientSocket.close();
 	}
 
-	public String getResource(URI resourceURI) throws IOException {
+	private void getResource(URI resourceURI, PrintWriter out, OutputStream outputStream, String uriStr) throws IOException {
+		String outputLine;
+		String mimeType = contentType(resourceURI.getPath());
+		if (mimeType != null) {
+			if (mimeType.contains("image")) {
+				String[] extension = uriStr.split("\\.");
+				getImageResource(resourceURI, outputStream, extension[1]);
+			} 
+			else {
+				outputLine = getTextResource(resourceURI);
+				out.println(outputLine);
+			}
+		}
+		else if (uriStr.equals("/")){
+			outputLine = defaultResponse();
+			out.println(outputLine);
+		}
+	}
+
+	private void getImageResource(URI resourceURI, OutputStream outputStream, String extension) throws IOException {
+		String path = "target/classes/public" + resourceURI.getPath();
+		File file = new File(path);
+
+		if (file.exists()) {
+			try {
+				BufferedImage image = ImageIO.read(file);
+				if (image != null) {
+					ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
+					DataOutputStream writeimg = new DataOutputStream(outputStream);
+
+					ImageIO.write(image, extension, arrayOutputStream);
+					writeimg.writeBytes("HTTP/1.1 200 OK \r\n" + "Content-Type: " + resourceURI.getPath() + "\r\n" + "\r\n");
+					writeimg.write(arrayOutputStream.toByteArray());
+				}
+			} catch (IOException e) {
+				throw new IOException("Image resource can not be null");
+			}
+		} else {
+			throw new IOException("Image resource don't exist");
+		}
+	}
+
+	public String getTextResource(URI resourceURI) throws IOException {
 		Charset charset = Charset.forName("UTF-8");
 		Path file = Paths.get("target/classes/public" + resourceURI.getPath());
 		String output;
@@ -104,7 +149,7 @@ public class HttpServer {
 							+ "      <title>Home page</title>\n" 
 							+ "    </head>\n" 
 							+ "    <body>\n"
-							+ "      <img src=\"http://agro-sky.com/construccion5.jpg\"> "
+							+ "      <img src=\"https://www.lagabogados.com/wp-content/uploads/2020/01/EN-CONSTRUCCION.jpg\"> "
 							+ "    </body>\n" 
 							+ "  </html>\n";
 		return outputLine;
@@ -122,6 +167,19 @@ public class HttpServer {
 		else if (path.contains(".js")) {
 			mimeType = "text/javascript";
 		}
+		else if (path.contains(".png")) {
+			mimeType = "image/png";
+		}
+		else if (path.contains(".jpeg")) {
+			mimeType = "image/jpeg";
+		}
+		else if (path.contains(".gif")) {
+			mimeType = "image/gif";
+		}
+		else if (path.contains(".jpg")) {
+			mimeType = "image/jpg";
+		}
+		
 		return mimeType;
 	}
 }
