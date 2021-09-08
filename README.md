@@ -17,6 +17,9 @@ El servidor web tiene la capacidad de entender recursos diversos como: .html, .c
 - [.css](https://webserver-client-server.herokuapp.com/css/style.css)
 - [.png](https://webserver-client-server.herokuapp.com/mafalda.png)
 
+### 📜 Arquitectura y Diseño detallado
+Para conocer acerca de la arquitectura y diseño del servidor web acceda [aquí](https://github.com/Angelica-Alfaro/AREP_TALLER2/blob/main/Articulo.pdf)
+
 
 
 
